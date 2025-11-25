@@ -11,7 +11,7 @@ high_score = 0
 
 # Set up l'écran
 wn = turtle.Screen()
-wn.title("Snake Game by @TokyoEdTech")
+wn.title("Snake Game par Nicholas, Hafid et Mikah")
 wn.bgcolor("green")
 wn.setup(width=600, height=600)
 wn.tracer(0) # Turns off les updates de l'écran
