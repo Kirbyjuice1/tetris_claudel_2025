@@ -7,8 +7,7 @@ WIDTH = 600
 HEIGHT = 600
 GRID = 20
 
-# Pyxel ne supporte pas 600x600, donc on crée un ratio 1:1 visuellement
-# en réduisant l'écran et en multipliant les coordonnées au dessin
+
 SCALE = 2
 pyxel.init(WIDTH // SCALE, HEIGHT // SCALE, title="Snake Game par Nicholas, Hafid et Micah", fps=60)
 
