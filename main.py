@@ -1,183 +1,134 @@
-
-import turtle
-import time
+import pyxel
 import random
+import time
 
-delay = 0.1
+# --- INITIALISATION ---
+WIDTH = 600
+HEIGHT = 600
+GRID = 20
 
-# Score
+# Pyxel ne supporte pas 600x600, donc on crée un ratio 1:1 visuellement
+# en réduisant l'écran et en multipliant les coordonnées au dessin
+SCALE = 2
+pyxel.init(WIDTH // SCALE, HEIGHT // SCALE, title="Snake Game par Nicholas, Hafid et Micah", fps=60)
+
+# Couleurs Pyxel (0 à 15)
+GREEN = 3
+BLACK = 0
+RED = 8
+GREY = 5
+WHITE = 7
+
+# --- VARIABLES ---
+snake_pos = [300, 300]
+snake_body = [[300, 300]]
+
+direction = "STOP"
+change_to = direction
+
+food_pos = [random.randrange(0, WIDTH, GRID), random.randrange(0, HEIGHT, GRID)]
+
 score = 0
 high_score = 0
-
-# Set up l'écran
-wn = turtle.Screen()
-wn.title("Snake Game par Nicholas, Hafid et Micah")
-wn.bgcolor("green")
-wn.setup(width=600, height=600)
-wn.tracer(0) # Turns off les updates de l'écran
-
-# tete serpent
-head = turtle.Turtle()
-head.speed(0)
-head.shape("square")
-head.color("black")
-head.penup()
-head.goto(0,0)
-head.direction = "stop"
-
-# nourriture
-food = turtle.Turtle()
-food.speed(0)
-food.shape("circle")
-food.color("red")
-food.penup()
-food.goto(0,100)
-
-segments = []
-
-# Pen
-pen = turtle.Turtle()
-pen.speed(0)
-pen.shape("square")
-pen.color("white")
-pen.penup()
-pen.hideturtle()
-pen.goto(0, 260)
-pen.write("Score: 0  High Score: 0", align="center", font=("Courier", 24, "normal"))
-
-# fonctions
-def go_up():
-    if head.direction != "down":
-        head.direction = "up"
-
-def go_down():
-    if head.direction != "up":
-        head.direction = "down"
-
-def go_left():
-    if head.direction != "right":
-        head.direction = "left"
-
-def go_right():
-    if head.direction != "left":
-        head.direction = "right"
-
-def move():
-    if head.direction == "up":
-        y = head.ycor()
-        head.sety(y + 20)
-
-    if head.direction == "down":
-        y = head.ycor()
-        head.sety(y - 20)
-
-    if head.direction == "left":
-        x = head.xcor()
-        head.setx(x - 20)
-
-    if head.direction == "right":
-        x = head.xcor()
-        head.setx(x + 20)
-
-# touches keyboard 
-wn.listen()
-wn.onkeypress(go_up, "w")
-wn.onkeypress(go_down, "s")
-wn.onkeypress(go_left, "a")
-wn.onkeypress(go_right, "d")
-
-# loop du jeu
-while True:
-    wn.update()
-
-    # collision avec bords
-    if head.xcor()>290 or head.xcor()<-290 or head.ycor()>290 or head.ycor()<-290:
-        time.sleep(1)
-        head.goto(0,0)
-        head.direction = "stop"
-
-        # cache les segments
-        for segment in segments:
-            segment.goto(1000, 1000)
-        
-        # effacer le segments de la liste
-        segments.clear()
-
-        # reset le score
-        score = 0
-
-        # reset le delay
-        delay = 0.1
-
-        pen.clear()
-        pen.write("Score: {}  High Score: {}".format(score, high_score), align="center", font=("Courier", 24, "normal")) 
+delay = 10     # vitesse (nombre de frames entre mouvements)
+frame_counter = 0
 
 
-    # collision avec nourriture
-    if head.distance(food) < 20:
-        # Move the food to a random spot
-        x = random.randint(-290, 290)
-        y = random.randint(-290, 290)
-        food.goto(x,y)
+# --- FONCTIONS ---
+def game_over():
+    global snake_body, snake_pos, direction, score, delay
+    time.sleep(1)
 
-        # ajoute un segment
-        new_segment = turtle.Turtle()
-        new_segment.speed(0)
-        new_segment.shape("square")
-        new_segment.color("grey")
-        new_segment.penup()
-        segments.append(new_segment)
+    snake_pos[:] = [300, 300]
+    snake_body[:] = [[300, 300]]
+    direction = "STOP"
+    score = 0
+    delay = 10
 
-        # racourcir le delay
-        delay -= 0.001
 
-        # augmenter le score
+def show_score():
+    txt = f"Score: {score}  High Score: {high_score}"
+    pyxel.text((WIDTH // SCALE) // 2 - len(txt)*2, 5, txt, WHITE)
+
+
+# --- UPDATE ---
+def update():
+    global direction, change_to, snake_pos, score, high_score, food_pos, frame_counter, delay
+
+    # Quitter
+    if pyxel.btnp(pyxel.KEY_Q):
+        pyxel.quit()
+
+    # Contrôles (mêmes touches)
+    if pyxel.btnp(pyxel.KEY_W) and direction != "DOWN":
+        change_to = "UP"
+    if pyxel.btnp(pyxel.KEY_S) and direction != "UP":
+        change_to = "DOWN"
+    if pyxel.btnp(pyxel.KEY_A) and direction != "RIGHT":
+        change_to = "LEFT"
+    if pyxel.btnp(pyxel.KEY_D) and direction != "LEFT":
+        change_to = "RIGHT"
+
+    direction = change_to
+
+    # Gestion du temps (équivalent de clock.tick())
+    frame_counter += 1
+    if frame_counter < delay:
+        return
+    frame_counter = 0
+
+    # Mouvement
+    if direction == "UP":
+        snake_pos[1] -= GRID
+    if direction == "DOWN":
+        snake_pos[1] += GRID
+    if direction == "LEFT":
+        snake_pos[0] -= GRID
+    if direction == "RIGHT":
+        snake_pos[0] += GRID
+
+    # Ajout tête
+    snake_body.insert(0, list(snake_pos))
+
+    # Collision nourriture
+    if snake_pos == food_pos:
         score += 10
+        delay = max(3, delay - 1)
+        food_pos = [random.randrange(0, WIDTH, GRID), random.randrange(0, HEIGHT, GRID)]
 
         if score > high_score:
             high_score = score
-        
-        pen.clear()
-        pen.write("Score: {}  High Score: {}".format(score, high_score), align="center", font=("Courier", 24, "normal")) 
+    else:
+        snake_body.pop()
 
-    # bouger la fin du segment en ordre decroissant
-    for index in range(len(segments)-1, 0, -1):
-        x = segments[index-1].xcor()
-        y = segments[index-1].ycor()
-        segments[index].goto(x, y)
+    # Collision bords
+    if snake_pos[0] < 0 or snake_pos[0] >= WIDTH or snake_pos[1] < 0 or snake_pos[1] >= HEIGHT:
+        game_over()
 
-    # bouger le segment 0 ou la tete est 
-    if len(segments) > 0:
-        x = head.xcor()
-        y = head.ycor()
-        segments[0].goto(x,y)
+    # Collision corps
+    for block in snake_body[1:]:
+        if block == snake_pos:
+            game_over()
 
-    move()    
 
-    # collision tete avec segment corps
-    for segment in segments:
-        if segment.distance(head) < 20:
-            time.sleep(1)
-            head.goto(0,0)
-            head.direction = "stop"
-        
-            # cacher les segments
-            for segment in segments:
-                segment.goto(1000, 1000)
-        
-            # effacer la liste segment 
-            segments.clear()
+# --- DRAW ---
+def draw():
+    pyxel.cls(GREEN)
 
-            # Reset le score
-            score = 0
+    # Dessiner nourriture
+    px = food_pos[0] // SCALE
+    py = food_pos[1] // SCALE
+    pyxel.rect(px, py, GRID // SCALE, GRID // SCALE, RED)
 
-            # Reset le delay
-            delay = 0.1
-        
-            # Update le display score 
-            pen.clear()
-            pen.write("Score: {}  High Score: {}".format(score, high_score), align="center", font=("Courier", 24, "normal"))
+    # Dessiner serpent
+    for block in snake_body:
+        bx = block[0] // SCALE
+        by = block[1] // SCALE
+        pyxel.rect(bx, by, GRID // SCALE, GRID // SCALE, BLACK)
 
-    time.sleep(delay)
+    show_score()
 
-wn.mainloop()
+
+# Lancement
+pyxel.run(update, draw)
+
