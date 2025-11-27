@@ -70,7 +70,7 @@ def update():
 
     direction = change_to
 
-    # Gestion du temps (équivalent de clock.tick())
+    # Vitesse du jeu
     frame_counter += 1
     if frame_counter < delay:
         return
