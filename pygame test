@@ -11,7 +11,7 @@ HEIGHT = 600
 GRID = 20
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Snake Game par Nicholas, Hafid et Mikah")
+pygame.display.set_caption("Snake Game par Nicholas, Hafid et Micah")
 
 clock = pygame.time.Clock()
 
