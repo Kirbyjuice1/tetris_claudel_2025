@@ -2,63 +2,59 @@ import pyxel
 import random
 import time
 
-# --- INITIALISATION ---
+# initialise
 WIDTH = 600
 HEIGHT = 600
 GRID = 20
-
-
 SCALE = 2
+
 pyxel.init(WIDTH // SCALE, HEIGHT // SCALE, title="Snake Game par Nicholas, Hafid et Micah", fps=60)
 
-# Couleurs Pyxel (0 à 15)
-GREEN = 3
-BLACK = 0
-RED = 8
-GREY = 5
-WHITE = 7
 
-# --- VARIABLES ---
+# couleurs 
+GREEN_DARK = 3 # vert foncé
+GREEN_LIGHT = 11
+RED         = 8    # reste pour nourriture
+BLACK       = 0
+WHITE       = 7    # texte
+
+
+# variables
+
 snake_pos = [300, 300]
 snake_body = [[300, 300]]
-
 direction = "STOP"
 change_to = direction
-
 food_pos = [random.randrange(0, WIDTH, GRID), random.randrange(0, HEIGHT, GRID)]
-
 score = 0
 high_score = 0
-delay = 10     # vitesse (nombre de frames entre mouvements)
+delay = 10     # vitesse FPS
 frame_counter = 0
 
 
-# --- FONCTIONS ---
+# fonctions
+
 def game_over():
     global snake_body, snake_pos, direction, score, delay
     time.sleep(1)
-
     snake_pos[:] = [300, 300]
     snake_body[:] = [[300, 300]]
     direction = "STOP"
     score = 0
     delay = 10
 
-
 def show_score():
     txt = f"Score: {score}  High Score: {high_score}"
     pyxel.text((WIDTH // SCALE) // 2 - len(txt)*2, 5, txt, WHITE)
 
-
-# --- UPDATE ---
 def update():
     global direction, change_to, snake_pos, score, high_score, food_pos, frame_counter, delay
 
-    # Quitter
+    # quitter
     if pyxel.btnp(pyxel.KEY_Q):
         pyxel.quit()
 
-    # Contrôles (mêmes touches)
+    # touches
     if pyxel.btnp(pyxel.KEY_W) and direction != "DOWN":
         change_to = "UP"
     if pyxel.btnp(pyxel.KEY_S) and direction != "UP":
@@ -70,13 +66,13 @@ def update():
 
     direction = change_to
 
-    # Vitesse du jeu
+    # temps
     frame_counter += 1
     if frame_counter < delay:
         return
     frame_counter = 0
 
-    # Mouvement
+    # mouvement
     if direction == "UP":
         snake_pos[1] -= GRID
     if direction == "DOWN":
@@ -86,10 +82,10 @@ def update():
     if direction == "RIGHT":
         snake_pos[0] += GRID
 
-    # Ajout tête
+    # ajouter une queue
     snake_body.insert(0, list(snake_pos))
 
-    # Collision nourriture
+    # collision nourriture
     if snake_pos == food_pos:
         score += 10
         delay = max(3, delay - 1)
@@ -100,19 +96,26 @@ def update():
     else:
         snake_body.pop()
 
-    # Collision bords
+    # collision bords
     if snake_pos[0] < 0 or snake_pos[0] >= WIDTH or snake_pos[1] < 0 or snake_pos[1] >= HEIGHT:
         game_over()
 
-    # Collision corps
+    # collision corps
     for block in snake_body[1:]:
         if block == snake_pos:
             game_over()
 
 
-# --- DRAW ---
+# draw
+
 def draw():
-    pyxel.cls(GREEN)
+    pyxel.cls(0)  # fond vide
+
+    # Dessiner la grille damier
+    for y in range(0, HEIGHT // SCALE, GRID // SCALE):
+        for x in range(0, WIDTH // SCALE, GRID // SCALE):
+            color = GREEN_LIGHT if (x // (GRID // SCALE) + y // (GRID // SCALE)) % 2 == 0 else GREEN_DARK
+            pyxel.rect(x, y, GRID // SCALE, GRID // SCALE, color)
 
     # Dessiner nourriture
     px = food_pos[0] // SCALE
@@ -127,7 +130,4 @@ def draw():
 
     show_score()
 
-
-# Lancement
 pyxel.run(update, draw)
-
