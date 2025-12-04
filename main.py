@@ -6,7 +6,7 @@ import time
 WIDTH = 600
 HEIGHT = 600
 GRID = 20
-SCALE = 2
+SCALE = 4
 
 pyxel.init(WIDTH // SCALE, HEIGHT // SCALE, title="Snake Game par Nicholas, Hafid et Micah", fps=60)
 
