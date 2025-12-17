@@ -244,3 +244,4 @@ def draw():
             blt_cell(tx, ty, "TAIL_D")
 
     show_score()
+pyxel.run(update, draw)
